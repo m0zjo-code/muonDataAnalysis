@@ -12,24 +12,27 @@ from scipy.fft import fftfreq
 from scipy import signal
 
 # read text file into pandas DataFrame
-df = pd.read_csv("muon-counts-160424-sanitised.txt", sep=" ")
+#df = pd.read_csv("Muondata-WF-090324-sanitised.zip", sep=" ")
+df = pd.read_csv("muon-counts-160424-sanitised.zip", sep=" ")
 
 # display DataFrame
 #print(df)
 
 # Firstly - we need to calculate a regulary sampled event rate dataset. 
 # Bin length - in seconds
-bin_len = "120s"
+bin_len = "1000s"
 
 # Covert to DateTime (Much easier to work with!)
 df["DateTime"] = pd.to_datetime(df["Date"] + " " + df["Time"], format='mixed')
 df["Epoch_ns"] = df["DateTime"].astype('int64')
 
-# Add in unweighted metric for us to sum
-df["Event_Rate"] = 1
+# Map in required metric (Just use "1" if only the event rate is of interest)
+df["Event_Rate"] = df["Meta0"]
 
 # Bin the dataset
-workingSet = df.resample(bin_len, on='DateTime').Event_Rate.sum().to_frame()
+# Note that the mean() of the aggregate event power is used here.
+# Sum() should be used if the total dose is of interest
+workingSet = df.resample(bin_len, on='DateTime').Event_Rate.mean().to_frame()
 
 #  Plot the binned dataset
 plt.figure(1)
@@ -50,6 +53,7 @@ plt.title("Raw Binned Muon Detector Rates (Debiased)")
 plt.xlabel("DateTime")
 plt.ylabel("Detections/min - Zero Mean")
 plt.grid(which='both', axis='both')
+#plt.ylim([-100, +100])
 plt.show()
 
 # Compute FFT of Data - Before any filtering
@@ -67,11 +71,13 @@ plt.grid(which='both', axis='both')
 plt.show()
 
 # Compute PWelch of Zero Mean Data
-f, Pxx_den = signal.welch(workingSet["Event_Rate_Debiased"], 1/120, nperseg=512)
+f, Pxx_den = signal.welch(workingSet["Event_Rate_Debiased"], 1/1000, nperseg=128)
 plt.figure(3)
+plt.title("PWelch PSD Estimate of Series")
 plt.semilogy(f, Pxx_den)
 plt.xlabel('Frequency [Hz]')
 plt.ylabel('Amplitude')
+plt.grid(which='both', axis='both')
 plt.show()
 
 
