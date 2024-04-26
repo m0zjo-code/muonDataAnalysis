@@ -71,10 +71,11 @@ plt.grid(which='both', axis='both')
 plt.show()
 
 # Compute PWelch of Zero Mean Data
-f, Pxx_den = signal.welch(workingSet["Event_Rate_Debiased"], 1/1000, nperseg=128)
+f, Pxx_den = signal.welch(workingSet["Event_Rate_Debiased"], 1/1000, nperseg=256)
 plt.figure(3)
 plt.title("PWelch PSD Estimate of Series")
-plt.semilogy(f, Pxx_den)
+plt.plot(f, Pxx_den)
+#plt.semilogy(f, Pxx_den)
 plt.xlabel('Frequency [Hz]')
 plt.ylabel('Amplitude')
 plt.grid(which='both', axis='both')
